@@ -29,6 +29,8 @@ public abstract class AbstractFuture<V> implements Future<V> {
 
     @Override
     public V get() throws InterruptedException, ExecutionException {
+//        TODO right or not
+//        实现了future的get()方法，实际上调用了await() -> object.wait(), 而futureTask调用了lockSupport.wait()
         await();
 
         Throwable cause = cause();

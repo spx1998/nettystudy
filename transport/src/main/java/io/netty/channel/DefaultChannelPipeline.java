@@ -81,6 +81,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
      * Thus full iterations to do insertions is assumed to be a good compromised to saving memory and tail management
      * complexity.
      */
+//    加入pipeline但没有
     private PendingHandlerCallback pendingHandlerCallbackHead;
 
     /**

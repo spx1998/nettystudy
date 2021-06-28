@@ -259,6 +259,7 @@ public class ResourceLeakDetector<T> {
             }
             return null;
         }
+//        触发内存泄漏检测的唯一时机：为新的buf建立tracker时检测是否有内存泄漏发生。
         reportLeak();
         return new DefaultResourceLeak(obj, refQueue, allLeaks);
     }
@@ -291,11 +292,15 @@ public class ResourceLeakDetector<T> {
 
         // Detect and report previous leaks.
         for (;;) {
+//            refQueue是当被引用的对象被回收时，WeakReference对象加入的队列，
+//            见 java.lang.ref.WeakReference.WeakReference(T, java.lang.ref.ReferenceQueue<? super T>)
+//            同时 主动调用close()方法，会调用clear()方法，这样对象就不会进入内存泄漏队列.
             DefaultResourceLeak ref = (DefaultResourceLeak) refQueue.poll();
             if (ref == null) {
                 break;
             }
 
+//            dispose失败，说明之前已经被清除，不存在内存泄漏
             if (!ref.dispose()) {
                 continue;
             }
@@ -361,6 +366,7 @@ public class ResourceLeakDetector<T> {
         @SuppressWarnings("unused")
         private volatile int droppedRecords;
 
+//        用一个set防止buf对象被回收，对应的DefaultResourceLeak也被回收。
         private final Set<DefaultResourceLeak<?>> allLeaks;
         private final int trackedHash;
 
@@ -431,6 +437,7 @@ public class ResourceLeakDetector<T> {
                         return;
                     }
                     final int numElements = oldHead.pos + 1;
+//                    如果超过了记录次数，则不会全部记录。
                     if (numElements >= TARGET_RECORDS) {
                         final int backOffFactor = Math.min(numElements - TARGET_RECORDS, 30);
                         if (dropped = PlatformDependent.threadLocalRandom().nextInt(1 << backOffFactor) != 0) {
@@ -449,6 +456,10 @@ public class ResourceLeakDetector<T> {
 
         boolean dispose() {
             clear();
+//            直接使用allLeaks.remove(this) 的结果来
+//            如果remove成功就说明之前close没有调用成功
+//            也就说明了这个监控对象并没有调用足够的release来完成资源释放
+//            如果remove失败说明之前已经完成了close的调用，一切正常
             return allLeaks.remove(this);
         }
 
@@ -587,6 +598,10 @@ public class ResourceLeakDetector<T> {
         } while (!excludedMethods.compareAndSet(oldMethods, newMethods));
     }
 
+    /**
+     * 继承自Throwable 为了方便获取调用栈：
+     * 在线程中new一个Throwable对象，JVM会将当前调用栈填入。
+     */
     private static class TraceRecord extends Throwable {
         private static final long serialVersionUID = 6065153674892850720L;
 

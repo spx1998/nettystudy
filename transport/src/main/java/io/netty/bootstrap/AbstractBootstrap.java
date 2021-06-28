@@ -230,6 +230,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     /**
      * Create a new {@link Channel} and bind it.
      */
+//    创建channel的入口
     public ChannelFuture bind() {
         validate();
         SocketAddress localAddress = this.localAddress;
@@ -278,6 +279,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         if (regFuture.isDone()) {
             // At this point we know that the registration was complete and successful.
             ChannelPromise promise = channel.newPromise();
+//            先register再bind 防止遗漏数据？
             doBind0(regFuture, channel, localAddress, promise);
             return promise;
         } else {
@@ -307,7 +309,9 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     final ChannelFuture initAndRegister() {
         Channel channel = null;
         try {
+//            bootstrap.channel设置过的channelFactory
             channel = channelFactory.newChannel();
+//            这里区分server和client
             init(channel);
         } catch (Throwable t) {
             if (channel != null) {
@@ -349,6 +353,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
 
         // This method is invoked before channelRegistered() is triggered.  Give user handlers a chance to set up
         // the pipeline in its channelRegistered() implementation.
+//        io.netty.util.concurrent.SingleThreadEventExecutor
         channel.eventLoop().execute(new Runnable() {
             @Override
             public void run() {

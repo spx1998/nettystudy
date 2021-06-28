@@ -39,6 +39,7 @@ public class UnpooledHeapByteBuf extends AbstractReferenceCountedByteBuf {
 
     private final ByteBufAllocator alloc;
     byte[] array;
+//    包装了一个nio的bytebuffer 但是底层还是上面的array
     private ByteBuffer tmpNioBuf;
 
     /**
@@ -545,6 +546,7 @@ public class UnpooledHeapByteBuf extends AbstractReferenceCountedByteBuf {
 
     @Override
     protected void deallocate() {
+//        释放非池化的堆中内存，直接把array设为空数组。
         freeArray(array);
         array = EmptyArrays.EMPTY_BYTES;
     }

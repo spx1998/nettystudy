@@ -122,19 +122,24 @@ abstract class PoolArena<T> extends SizeClasses implements PoolArenaMetric {
     abstract boolean isDirect();
 
     PooledByteBuf<T> allocate(PoolThreadCache cache, int reqCapacity, int maxCapacity) {
+//        从对象池里取一个Buf对象，可以循环利用
         PooledByteBuf<T> buf = newByteBuf(maxCapacity);
         allocate(cache, buf, reqCapacity);
         return buf;
     }
 
     private void allocate(PoolThreadCache cache, PooledByteBuf<T> buf, final int reqCapacity) {
+//        根据申请容量确定对应的数组的下标
         final int sizeIdx = size2SizeIdx(reqCapacity);
 
+//        28KB以下small
         if (sizeIdx <= smallMaxSizeIdx) {
             tcacheAllocateSmall(cache, buf, reqCapacity, sizeIdx);
+//            28KB-15MB normal
         } else if (sizeIdx < nSizes) {
             tcacheAllocateNormal(cache, buf, reqCapacity, sizeIdx);
         } else {
+//            以上hug
             int normCapacity = directMemoryCacheAlignment > 0
                     ? normalizeSize(reqCapacity) : reqCapacity;
             // Huge allocations are never served via the cache so just call allocateHuge

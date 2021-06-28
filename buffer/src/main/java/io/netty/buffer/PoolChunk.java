@@ -16,6 +16,7 @@
 package io.netty.buffer;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.Channel;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.PriorityQueue;
@@ -493,6 +494,7 @@ final class PoolChunk<T> implements PoolChunkMetric {
     }
 
     private long collapseRuns(long handle) {
+//        先前向，再后向
         return collapseNext(collapsePast(handle));
     }
 
